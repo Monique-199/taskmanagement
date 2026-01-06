@@ -133,5 +133,12 @@ public class TaskService {
                 .toList();
     }
 
+    public List<TaskDto> getTasksByCategoryName(String name) {
+        return taskrepository.findTasksByCategoryName(name)
+                .stream()
+                .map(this::convertToDTO)
+                .toList();
+    }
+
 
 }

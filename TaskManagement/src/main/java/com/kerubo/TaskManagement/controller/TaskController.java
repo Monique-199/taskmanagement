@@ -64,5 +64,11 @@ public class TaskController {
         return taskService.searchTasks(keyword);
     }
 
+    @GetMapping("/by-category-name")
+    public List<TaskDto> getTasksByCategoryName(@RequestParam String name) {
+        return taskService.getTasksByCategoryName(name);
+    }
+
+
 
 }
