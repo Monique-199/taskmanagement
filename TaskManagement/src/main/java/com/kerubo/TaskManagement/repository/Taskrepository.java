@@ -11,4 +11,6 @@ public interface Taskrepository extends JpaRepository<Task, Long> {
 
     // Custom query: find tasks by category id
     List<Task> findByCategoryId(Long categoryId);
+
+
 }

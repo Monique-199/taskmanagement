@@ -3,6 +3,7 @@ package com.kerubo.TaskManagement.controller;
 import com.kerubo.TaskManagement.dto.TaskDto;
 import com.kerubo.TaskManagement.service.TaskService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,4 +49,20 @@ public class TaskController {
     public void deleteTask(@PathVariable Long id) {
         taskService.deleteTask(id);
     }
+
+    @GetMapping("/paginated-sorted")
+    public Page<TaskDto> getTasksPaginatedAndSorted(
+            @RequestParam int page,
+            @RequestParam int size,
+            @RequestParam String sortBy) {
+
+        return taskService.getTasksPaginatedAndSorted(page, size, sortBy);
+    }
+
+    @GetMapping("/search")
+    public List<TaskDto> searchTasks(@RequestParam String keyword) {
+        return taskService.searchTasks(keyword);
+    }
+
+
 }

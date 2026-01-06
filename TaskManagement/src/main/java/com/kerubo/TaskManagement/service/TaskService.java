@@ -8,6 +8,10 @@ import com.kerubo.TaskManagement.repository.CategoryRepository;
 import com.kerubo.TaskManagement.repository.Taskrepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -106,5 +110,28 @@ public class TaskService {
         }
         return task;
     }
+
+    public Page<TaskDto> getTasksPaginatedAndSorted(
+            int page,
+            int size,
+            String sortBy) {
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(sortBy).ascending()
+        );
+
+        return taskrepository.findAll(pageable)
+                .map(this::convertToDTO);
+    }
+
+    public List<TaskDto> searchTasks(String keyword) {
+        return taskrepository.findByTitleContainingIgnoreCase(keyword)
+                .stream()
+                .map(this::convertToDTO)
+                .toList();
+    }
+
 
 }
