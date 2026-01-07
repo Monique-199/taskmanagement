@@ -1,5 +1,7 @@
 package com.kerubo.TaskManagement.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.kerubo.TaskManagement.model.Task;
 import org.springframework.data.jpa.repository.Query;
@@ -23,5 +25,46 @@ public interface Taskrepository extends JpaRepository<Task, Long> {
 
     @Query("SELECT t FROM Task t JOIN t.category c WHERE c.name = :categoryName")
     List<Task> findTasksByCategoryName(@Param("categoryName") String categoryName);
+
+    @Query("""
+        SELECT t
+        FROM Task t
+        JOIN FETCH t.category
+    """)
+    List<Task> findAllWithCategory();
+
+    // JOIN FETCH + FILTER
+    @Query("""
+        SELECT t
+        FROM Task t
+        JOIN FETCH t.category c
+        WHERE LOWER(c.name) = LOWER(:categoryName)
+    """)
+    List<Task> findByCategoryNameFetch(
+            @Param("categoryName") String categoryName
+    );
+
+    @Query("""
+    SELECT t.id
+    FROM Task t
+    JOIN t.category c
+    WHERE LOWER(c.name) = LOWER(:categoryName)
+""")
+    Page<Long> findTaskIdsByCategory(
+            @Param("categoryName") String categoryName,
+            Pageable pageable
+    );
+
+    @Query("""
+    SELECT t
+    FROM Task t
+    JOIN FETCH t.category
+    WHERE t.id IN :ids
+""")
+    List<Task> findTasksWithCategoryByIds(
+            @Param("ids") List<Long> ids
+    );
+
+
 
 }

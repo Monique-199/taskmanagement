@@ -13,6 +13,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageImpl;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +32,7 @@ public class TaskService {
     }
 
     public List<TaskDto> getAllTasks() {
-        return taskrepository.findAll()
+        return taskrepository.findAllWithCategory()
                 .stream()
                 .map(task -> {
                     TaskDto dto = modelMapper.map(task, TaskDto.class);
@@ -139,6 +141,46 @@ public class TaskService {
                 .map(this::convertToDTO)
                 .toList();
     }
+
+    public Page<TaskDto> getTasksByCategoryPaged(
+            String categoryName,
+            int page,
+            int size,
+            String sortBy
+    ) {
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(sortBy).descending()
+        );
+        //JOIN FETCH with filtering and pagination
+        // 1️. Get paged IDs
+        Page<Long> taskIdsPage =
+                taskrepository.findTaskIdsByCategory(categoryName, pageable);
+
+        if (taskIdsPage.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        // 2️ Fetch full entities with JOIN FETCH
+        List<Task> tasks =
+                taskrepository.findTasksWithCategoryByIds(taskIdsPage.getContent());
+
+        // 3️ Map to DTOs
+        List<TaskDto> dtos = tasks.stream()
+                .map(task -> {
+                    TaskDto dto = modelMapper.map(task, TaskDto.class);
+                    dto.setCategoryId(task.getCategory().getId());
+                    dto.setCategoryName(task.getCategory().getName());
+                    return dto;
+                })
+                .toList();
+
+        // 4️ Return paged result
+        return new PageImpl<>(dtos, pageable, taskIdsPage.getTotalElements());
+    }
+
 
 
 }

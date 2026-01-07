@@ -13,6 +13,17 @@ public class TaskDto {
     @NotNull(message = "Category ID is required")
     private Long categoryId; // only the ID of the category
 
+    public String getCategoryName() {
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    private String categoryName;
+
+
     public Long getCategoryId() {
         return categoryId;
     }

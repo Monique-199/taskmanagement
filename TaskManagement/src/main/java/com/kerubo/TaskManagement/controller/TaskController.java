@@ -69,6 +69,15 @@ public class TaskController {
         return taskService.getTasksByCategoryName(name);
     }
 
+    @GetMapping("/search/paged")
+    public Page<TaskDto> searchTasks(
+            @RequestParam String category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortBy
+    ) {
+        return taskService.getTasksByCategoryPaged(category, page, size, sortBy);
+    }
 
 
 }
