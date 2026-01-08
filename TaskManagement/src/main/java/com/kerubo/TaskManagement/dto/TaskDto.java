@@ -13,6 +13,16 @@ public class TaskDto {
     @NotNull(message = "Category ID is required")
     private Long categoryId; // only the ID of the category
 
+    private Long version;
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
     public String getCategoryName() {
         return categoryName;
     }

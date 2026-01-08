@@ -7,7 +7,8 @@ import com.kerubo.TaskManagement.model.Category;
 import com.kerubo.TaskManagement.model.Task;
 import com.kerubo.TaskManagement.repository.CategoryRepository;
 import com.kerubo.TaskManagement.repository.Taskrepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +33,7 @@ public class TaskService {
         this.modelMapper = modelMapper;
     }
 
+    @Transactional(readOnly = true)
     public List<TaskDto> getAllTasks() {
         return taskrepository.findAllWithCategory()
                 .stream()
@@ -43,6 +45,9 @@ public class TaskService {
                 .collect(Collectors.toList());
     }
 
+    // This method is transactional
+    // If ANY exception happens, rollback
+@Transactional
     public TaskDto createTask(TaskDto taskDTO) {
         Task task = modelMapper.map(taskDTO, Task.class);
         if (taskDTO.getCategoryId() != null) {
@@ -61,29 +66,30 @@ public class TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found with id " + id));
         return convertToDTO(task);
     }
+
     // -------- UPDATE TASK --------
     @Transactional
     public TaskDto updateTask(Long id, TaskDto taskDTO) {
-        Task existingTask = taskrepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found with id " + id));
 
-        existingTask.setTitle(taskDTO.getTitle());
-        existingTask.setDescription(taskDTO.getDescription());
-        existingTask.setCompleted(taskDTO.isCompleted());
+        Task task = new Task();
 
-        if (taskDTO.getDueDate() != null) {
-            existingTask.setDueDate(java.time.LocalDate.parse(taskDTO.getDueDate()));
-        }
+        //  Attach client state (including version)
+        task.setId(id);
+        task.setVersion(taskDTO.getVersion()); // THIS enables locking
+        task.setTitle(taskDTO.getTitle());
+        task.setDescription(taskDTO.getDescription());
+        task.setCompleted(taskDTO.isCompleted());
 
         if (taskDTO.getCategoryId() != null) {
             Category category = categoryRepository.findById(taskDTO.getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category not found with id " + taskDTO.getCategoryId()));
-            existingTask.setCategory(category);
+                    .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+            task.setCategory(category);
         }
 
-        Task updatedTask = taskrepository.save(existingTask);
-        return convertToDTO(updatedTask);
+        Task saved = taskrepository.save(task); // Hibernate compares versions here
+        return convertToDTO(saved);
     }
+
 
 
     // -------- DELETE TASK --------
@@ -189,6 +195,14 @@ public class TaskService {
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return taskrepository.findTaskSummariesByCategory(category, pageable);
+    }
+    @Transactional
+    public void riskyOperation() {
+        taskrepository.save(new Task());
+
+        if (true) {
+            throw new RuntimeException("Boom"); // rollback
+        }
     }
 
 
