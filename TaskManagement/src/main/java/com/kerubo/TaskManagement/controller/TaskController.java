@@ -1,6 +1,7 @@
 package com.kerubo.TaskManagement.controller;
 
 import com.kerubo.TaskManagement.dto.TaskDto;
+import com.kerubo.TaskManagement.dto.TaskSummaryDto;
 import com.kerubo.TaskManagement.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -78,6 +79,16 @@ public class TaskController {
     ) {
         return taskService.getTasksByCategoryPaged(category, page, size, sortBy);
     }
+
+    @GetMapping("/summary")
+    public Page<TaskSummaryDto> getTaskSummaries(
+            @RequestParam String category,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
+    ) {
+        return taskService.getTaskSummaries(category, page, size);
+    }
+
 
 
 }

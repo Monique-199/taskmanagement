@@ -1,5 +1,6 @@
 package com.kerubo.TaskManagement.repository;
 
+import com.kerubo.TaskManagement.dto.TaskSummaryDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -63,6 +64,22 @@ public interface Taskrepository extends JpaRepository<Task, Long> {
 """)
     List<Task> findTasksWithCategoryByIds(
             @Param("ids") List<Long> ids
+    );
+
+    @Query("""
+        SELECT new com.kerubo.TaskManagement.dto.TaskSummaryDto(
+            t.id,
+            t.title,
+            t.completed,
+            c.name
+        )
+        FROM Task t
+        JOIN t.category c
+        WHERE LOWER(c.name) = LOWER(:category)
+    """)
+    Page<TaskSummaryDto> findTaskSummariesByCategory(
+            @Param("category") String category,
+            Pageable pageable
     );
 
 

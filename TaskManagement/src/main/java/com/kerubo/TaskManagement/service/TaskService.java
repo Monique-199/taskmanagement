@@ -1,6 +1,7 @@
 package com.kerubo.TaskManagement.service;
 
 import com.kerubo.TaskManagement.dto.TaskDto;
+import com.kerubo.TaskManagement.dto.TaskSummaryDto;
 import com.kerubo.TaskManagement.exception.ResourceNotFoundException;
 import com.kerubo.TaskManagement.model.Category;
 import com.kerubo.TaskManagement.model.Task;
@@ -180,6 +181,16 @@ public class TaskService {
         // 4️ Return paged result
         return new PageImpl<>(dtos, pageable, taskIdsPage.getTotalElements());
     }
+
+    public Page<TaskSummaryDto> getTaskSummaries(
+            String category,
+            int page,
+            int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        return taskrepository.findTaskSummariesByCategory(category, pageable);
+    }
+
 
 
 
