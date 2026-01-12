@@ -1,5 +1,6 @@
 package com.kerubo.TaskManagement.config;
 
+import com.kerubo.TaskManagement.security.JwtAuthEntryPoint;
 import com.kerubo.TaskManagement.security.JwtRequestFilter;
 import com.kerubo.TaskManagement.security.JwtUtil;
 import org.springframework.context.annotation.Bean;
@@ -17,14 +18,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtRequestFilter jwtFilter;
+    private final JwtAuthEntryPoint authEntryPoint;
 
-    public SecurityConfig(JwtRequestFilter jwtFilter) {
+
+
+
+    public SecurityConfig(JwtRequestFilter jwtFilter, JwtAuthEntryPoint authEntryPoint) {
         this.jwtFilter = jwtFilter;
+        this.authEntryPoint = authEntryPoint;
     }
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-       // public JwtUtil jwtUtil;
+
 
         http
                 .csrf(csrf -> csrf.disable())
@@ -32,6 +38,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/tasks/**").authenticated()
                         .anyRequest().permitAll()
+                )
+
+                .exceptionHandling(ex ->
+                        ex.authenticationEntryPoint(authEntryPoint)
                 )
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)

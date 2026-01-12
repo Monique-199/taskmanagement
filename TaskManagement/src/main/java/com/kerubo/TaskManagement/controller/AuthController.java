@@ -41,7 +41,8 @@ public class AuthController {
         userRepository.save(user);
     }
 
-    // LOGIN
+
+
     @PostMapping("/login")
     public String login(@RequestBody User user) {
 
@@ -51,19 +52,14 @@ public class AuthController {
                         user.getPassword()
                 )
         );
-      //  2.Load user from DB
-        User appUser = userRepository.findByUsername(user.getUsername())
+
+        User dbUser = userRepository.findByUsername(user.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // 3 Build UserDetails with role as authority
-        UserDetails userDetails =
-                org.springframework.security.core.userdetails.User
-                        .withUsername(appUser.getUsername())
-                        .password(appUser.getPassword())
-                        .authorities(appUser.getRole()) // IMPORTANT
-                        .build();
-
-        return jwtUtil.generateToken(userDetails.getUsername());
-
+        return jwtUtil.generateToken(
+                dbUser.getUsername(),
+                dbUser.getRole()
+        );
     }
+
 }

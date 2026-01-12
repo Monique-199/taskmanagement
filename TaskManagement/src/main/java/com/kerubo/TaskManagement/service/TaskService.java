@@ -95,9 +95,10 @@ public class TaskService {
     // -------- DELETE TASK --------
     @Transactional
     public void deleteTask(Long id) {
-        Task task = taskrepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found with id " + id));
-        taskrepository.delete(task);
+        if (!taskrepository.existsById(id)) {
+            throw new ResourceNotFoundException("Task not found with id " + id);
+        }
+        taskrepository.deleteById(id);
     }
 
     // -------- HELPER METHODS FOR DTO CONVERSION --------

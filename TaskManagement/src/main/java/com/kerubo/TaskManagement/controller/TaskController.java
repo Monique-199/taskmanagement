@@ -5,6 +5,7 @@ import com.kerubo.TaskManagement.dto.TaskSummaryDto;
 import com.kerubo.TaskManagement.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class TaskController {
         this.taskService = taskService;
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping
     public List<TaskDto> getTasks() {
         return taskService.getAllTasks();
@@ -46,6 +48,7 @@ public class TaskController {
     }
 
     // -------- DELETE TASK --------
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public void deleteTask(@PathVariable Long id) {
         taskService.deleteTask(id);
