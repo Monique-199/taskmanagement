@@ -60,12 +60,18 @@ public class CategoryService {
 
     // DELETE category
     public void deleteCategory(Long id) {
-        if (!categoryRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Category not found with id " + id);
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Category not found with id " + id));
+
+        if (!category.getTasks().isEmpty()) {
+            throw new IllegalStateException(
+                    "Cannot delete category with existing tasks");
         }
 
-        categoryRepository.deleteById(id);
+        categoryRepository.delete(category);
     }
+
 
 }
 

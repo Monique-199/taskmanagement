@@ -20,6 +20,10 @@ public class Category {
         return id;
     }
 
+    public List<Task> getTasks() {
+        return tasks;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
