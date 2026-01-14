@@ -76,4 +76,79 @@ class TaskServiceTest {
 
         verify(taskRepository, never()).save(any());
     }
+
+    @Test
+    void shouldUpdateTaskSuccessfully() {
+        // GIVEN
+        Task existingTask = new Task();
+        existingTask.setId(1L);
+        existingTask.setTitle("Old Title");
+
+        TaskDto dto = new TaskDto();
+        dto.setTitle("New Title");
+
+        TaskDto resultDto = new TaskDto();
+        resultDto.setTitle("New Title");
+
+        when(taskRepository.findById(1L))
+                .thenReturn(Optional.of(existingTask));
+
+        when(taskRepository.save(any(Task.class)))
+                .thenReturn(existingTask);
+
+        when(modelMapper.map(existingTask, TaskDto.class))
+                .thenReturn(resultDto);
+
+        // WHEN
+        TaskDto result = taskService.updateTask(1L, dto);
+
+        // THEN
+        assertEquals("New Title", result.getTitle());
+
+        verify(taskRepository).save(any(Task.class));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUpdatingNonExistingTask() {
+        // GIVEN
+        TaskDto dto = new TaskDto();
+        dto.setTitle("Doesn't matter");
+
+        when(taskRepository.findById(99L))
+                .thenReturn(Optional.empty());
+
+        // THEN
+        assertThrows(ResourceNotFoundException.class,
+                () -> taskService.updateTask(99L, dto));
+
+        verify(taskRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldDeleteTaskSuccessfully() {
+        // GIVEN
+        when(taskRepository.existsById(1L))
+                .thenReturn(true);
+
+        // WHEN
+        taskService.deleteTask(1L);
+
+        // THEN
+        verify(taskRepository).existsById(1L);
+        verify(taskRepository).deleteById(1L);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDeletingNonExistingTask() {
+        // GIVEN
+        when(taskRepository.existsById(100L))
+                .thenReturn(false);
+
+        // THEN
+        assertThrows(ResourceNotFoundException.class,
+                () -> taskService.deleteTask(100L));
+
+        verify(taskRepository, never()).deleteById(any());
+    }
+
 }
