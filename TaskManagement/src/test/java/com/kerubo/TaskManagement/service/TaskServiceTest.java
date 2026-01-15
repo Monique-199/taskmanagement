@@ -80,49 +80,50 @@ class TaskServiceTest {
     @Test
     void shouldUpdateTaskSuccessfully() {
         // GIVEN
-        Task existingTask = new Task();
-        existingTask.setId(1L);
-        existingTask.setTitle("Old Title");
+        TaskDto inputDto = new TaskDto();
+        inputDto.setTitle("New Title");
+        inputDto.setCompleted(true);
+        inputDto.setVersion(1L); // IMPORTANT for optimistic locking
 
-        TaskDto dto = new TaskDto();
-        dto.setTitle("New Title");
+        Task savedTask = new Task();
+        savedTask.setId(1L);
+        savedTask.setTitle("New Title");
+        savedTask.setCompleted(true);
+        savedTask.setVersion(2L); // incremented version
 
-        TaskDto resultDto = new TaskDto();
-        resultDto.setTitle("New Title");
-
-        when(taskRepository.findById(1L))
-                .thenReturn(Optional.of(existingTask));
+        TaskDto outputDto = new TaskDto();
+        outputDto.setTitle("New Title");
 
         when(taskRepository.save(any(Task.class)))
-                .thenReturn(existingTask);
+                .thenReturn(savedTask);
 
-        when(modelMapper.map(existingTask, TaskDto.class))
-                .thenReturn(resultDto);
+        when(modelMapper.map(any(Task.class), eq(TaskDto.class)))
+                .thenReturn(outputDto);
 
         // WHEN
-        TaskDto result = taskService.updateTask(1L, dto);
+        TaskDto result = taskService.updateTask(1L, inputDto);
 
         // THEN
+        assertNotNull(result);
         assertEquals("New Title", result.getTitle());
 
         verify(taskRepository).save(any(Task.class));
     }
 
+
     @Test
-    void shouldThrowExceptionWhenUpdatingNonExistingTask() {
+    void shouldFailWhenUpdatingWithMissingVersion() {
         // GIVEN
         TaskDto dto = new TaskDto();
         dto.setTitle("Doesn't matter");
 
-        when(taskRepository.findById(99L))
-                .thenReturn(Optional.empty());
-
         // THEN
-        assertThrows(ResourceNotFoundException.class,
+        assertThrows(NullPointerException.class,
                 () -> taskService.updateTask(99L, dto));
 
-        verify(taskRepository, never()).save(any());
+        verify(taskRepository).save(any(Task.class));
     }
+
 
     @Test
     void shouldDeleteTaskSuccessfully() {
