@@ -2,11 +2,13 @@ package com.kerubo.TaskManagement.service;
 
 import com.kerubo.TaskManagement.dto.TaskDto;
 import com.kerubo.TaskManagement.dto.TaskSummaryDto;
+import com.kerubo.TaskManagement.exception.ConflictException;
 import com.kerubo.TaskManagement.exception.ResourceNotFoundException;
 import com.kerubo.TaskManagement.model.Category;
 import com.kerubo.TaskManagement.model.Task;
 import com.kerubo.TaskManagement.repository.CategoryRepository;
 import com.kerubo.TaskManagement.repository.Taskrepository;
+import jakarta.persistence.OptimisticLockException;
 import org.springframework.transaction.annotation.Transactional;
 
 import org.modelmapper.ModelMapper;
@@ -86,8 +88,18 @@ public class TaskService {
             task.setCategory(category);
         }
 
-        Task saved = taskrepository.save(task); // Hibernate compares versions here
-        return convertToDTO(saved);
+//        Task saved = taskrepository.save(task); // Hibernate compares versions here
+//        return convertToDTO(saved);
+        //NICE ERROR MESSAGE
+        try {
+            Task saved = taskrepository.save(task);
+            return convertToDTO(saved);
+        } catch (OptimisticLockException e) {
+            throw new ConflictException(
+                    "This task was updated by someone else. Please refresh and try again."
+            );
+        }
+
     }
 
 

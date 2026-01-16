@@ -1,11 +1,13 @@
 package com.kerubo.TaskManagement.service;
 
 import com.kerubo.TaskManagement.dto.TaskDto;
+import com.kerubo.TaskManagement.exception.ConflictException;
 import com.kerubo.TaskManagement.exception.ResourceNotFoundException;
 import com.kerubo.TaskManagement.model.Category;
 import com.kerubo.TaskManagement.model.Task;
 import com.kerubo.TaskManagement.repository.CategoryRepository;
 import com.kerubo.TaskManagement.repository.Taskrepository;
+import jakarta.persistence.OptimisticLockException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.modelmapper.ModelMapper;
@@ -150,6 +152,41 @@ class TaskServiceTest {
                 () -> taskService.deleteTask(100L));
 
         verify(taskRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void shouldThrowOptimisticLockExceptionWhenVersionMismatch() {
+        // GIVEN
+        TaskDto dto = new TaskDto();
+        dto.setId(99L);
+        dto.setTitle("Old toy");
+        dto.setVersion(1L); //  old magic number
+
+        // Mockito magic: save goes BOOM
+        when(taskRepository.save(any(Task.class)))
+                .thenThrow(new OptimisticLockException("Version mismatch"));
+
+        // THEN
+        assertThrows(ConflictException.class,
+                () -> taskService.updateTask(99L, dto));
+
+        verify(taskRepository).save(any(Task.class));
+    }
+
+    @Test
+    void shouldConvertOptimisticLockExceptionToConflictException() {
+        // GIVEN
+        TaskDto dto = new TaskDto();
+        dto.setId(1L);
+        dto.setTitle("Toy");
+        dto.setVersion(1L);
+
+        when(taskRepository.save(any(Task.class)))
+                .thenThrow(new OptimisticLockException("Boom"));
+
+        // THEN
+        assertThrows(ConflictException.class,
+                () -> taskService.updateTask(1L, dto));
     }
 
 }
